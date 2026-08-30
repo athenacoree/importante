@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catálogo Cuba — Compra y envío</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Logo / nombre del sitio: tócalo 3 veces para el panel admin -->
+  <div class="brand" id="brand">
+    <span class="flag" id="siteFlag">🇨🇺</span>
+    <h1 id="siteName">Catálogo Cuba</h1>
+  </div>
+
+  <!-- Bienvenida: qué es la plataforma -->
+  <section class="hero glass">
+    <h2>Compra afuera, llega a Cuba</h2>
+    <p>Elige un producto del catálogo, paga con tu tarjeta desde cualquier país y nosotros lo hacemos llegar a tu familia en Cuba en un plazo de hasta 7 días. El envío es totalmente gratis.</p>
+    <div class="hero-steps">
+      <div class="hero-step"><span class="n">1</span><br>Elige el producto del catálogo</div>
+      <div class="hero-step"><span class="n">2</span><br>Paga seguro con Nexapay</div>
+      <div class="hero-step"><span class="n">3</span><br>Lo recibe tu familia en Cuba</div>
+    </div>
+    <div class="badge-row">
+      <span class="badge">Envío gratis</span>
+      <span class="badge">Hasta 7 días</span>
+      <span class="badge">Pago con tarjeta vía Nexapay</span>
+    </div>
+  </section>
+
+  <!-- Catálogo -->
+  <h3 class="section-title">Catálogo</h3>
+  <div class="grid" id="productGrid"></div>
+
+</div>
+
+<!-- ============ FICHA DE PRODUCTO / COMPRA ============ -->
+<div class="overlay" id="productOverlay">
+  <div class="sheet">
+    <span class="close-x" data-close="productOverlay">✕</span>
+    <div class="sheet-handle"></div>
+    <h3 id="productTitle"></h3>
+    <p class="price-big" id="productPrice"></p>
+    <p class="desc" id="productDesc"></p>
+
+    <label>Tu nombre</label>
+    <input id="buyerName" placeholder="Nombre y apellidos">
+
+    <label>Tu contacto (WhatsApp / correo)</label>
+    <input id="buyerContact" placeholder="Para avisarte del pedido">
+
+    <label>Destino en Cuba</label>
+    <textarea id="buyerDestination" rows="2" placeholder="Nombre de quien recibe, dirección y municipio"></textarea>
+
+    <button class="btn btn-primary" id="payBtn">Pagar con tarjeta (Nexapay)</button>
+    <p class="meta" id="orderResult" style="color:#ff3b30; font-size:13px; margin-top:8px;"></p>
+  </div>
+</div>
+
+<!-- ============ EDITAR PRODUCTO (MODAL MODAL) ============ -->
+<div class="overlay" id="editProductOverlay">
+  <div class="sheet">
+    <span class="close-x" data-close="editProductOverlay">✕</span>
+    <div class="sheet-handle"></div>
+    <h3>Editar Producto</h3>
+    <label>Nombre del producto</label>
+    <input id="editProdName">
+    <label>Precio (USD)</label>
+    <input id="editProdPrice" type="number" step="0.01">
+    <label>Descripción</label>
+    <textarea id="editProdDesc" rows="3"></textarea>
+    <label>URL de la foto</label>
+    <input id="editProdImg" placeholder="https://...">
+    <button class="btn btn-primary" id="saveEditProdBtn" style="margin-top:12px;">Guardar Cambios</button>
+    <p class="meta" id="editProdMsg" style="margin-top:8px;"></p>
+  </div>
+</div>
+
+<!-- ============ PANEL DE ADMINISTRADOR (oculto) ============ -->
+<div class="overlay" id="adminOverlay">
+  <div class="sheet">
+    <span class="close-x" data-close="adminOverlay">✕</span>
+    <div class="sheet-handle"></div>
+
+    <div id="admin-loading">
+      <p>Verificando…</p>
+    </div>
+
+    <!-- Primera vez: crear contraseña -->
+    <div id="admin-setup" style="display:none;">
+      <h3>Configura el acceso de administrador</h3>
+      <p class="meta">Esto solo se pide una vez. Guarda bien estos datos.</p>
+      <label>Correo</label>
+      <input id="setupEmail" type="email" placeholder="tu@correo.com">
+      <label>Contraseña</label>
+      <input id="setupPass" type="password" placeholder="Mínimo 6 caracteres">
+      <label>Repite la contraseña</label>
+      <input id="setupPass2" type="password">
+      <button class="btn btn-primary" id="setupBtn">Crear acceso</button>
+      <p class="meta" id="setupMsg" style="margin-top:8px;"></p>
+    </div>
+
+    <!-- Ya configurado: iniciar sesión -->
+    <div id="admin-login" style="display:none;">
+      <h3>Panel de administrador</h3>
+      <label>Correo</label>
+      <input id="loginEmail" type="email">
+      <label>Contraseña</label>
+      <input id="loginPass" type="password">
+      <button class="btn btn-primary" id="loginBtn">Entrar</button>
+      <p class="meta" id="loginMsg" style="margin-top:8px;"></p>
+    </div>
+
+    <!-- Panel real -->
+    <div id="admin-panel" style="display:none;">
+      <h3>Panel de administrador</h3>
+      <div class="admin-tabs">
+        <div class="admin-tab active" data-tab="products">Productos</div>
+        <div class="admin-tab" data-tab="orders">Pedidos</div>
+        <div class="admin-tab" data-tab="referrals">Referidos</div>
+      </div>
+
+      <!-- Productos -->
+      <div class="admin-panel-tab" data-panel="products">
+        <div id="adminProductList"></div>
+        <h4 style="margin-top:18px;">Agregar producto</h4>
+        <label>Nombre</label>
+        <input id="newProdName">
+        <label>Precio (USD)</label>
+        <input id="newProdPrice" type="number" step="0.01">
+        <label>Descripción</label>
+        <textarea id="newProdDesc" rows="2"></textarea>
+        <label>URL de la foto</label>
+        <input id="newProdImg" placeholder="https://...">
+        <button class="btn btn-secondary" id="addProductBtn">Agregar Producto</button>
+        <p class="meta" id="newProdMsg"></p>
+      </div>
+
+      <!-- Pedidos -->
+      <div class="admin-panel-tab" data-panel="orders" style="display:none;">
+        <div id="adminOrderList"></div>
+      </div>
+
+      <!-- Referidos -->
+      <div class="admin-panel-tab" data-panel="referrals" style="display:none;">
+        <div id="adminReferralList"></div>
+        <h4 style="margin-top:18px;">Registrar referido</h4>
+        <label>Nombre</label>
+        <input id="newRefName">
+        <label>Contacto</label>
+        <input id="newRefContact">
+        <label>Comisión (%)</label>
+        <select id="newRefTier">
+          <option value="3">3%</option>
+          <option value="5">5%</option>
+          <option value="7">7%</option>
+        </select>
+        <label>Código de quien lo refirió (opcional)</label>
+        <input id="newRefUpline" placeholder="Déjalo vacío si nadie lo refirió">
+        <button class="btn btn-secondary" id="addReferrerBtn">Registrar Referido</button>
+        <p class="meta" id="newRefMsg"></p>
+      </div>
+
+      <button class="btn btn-danger" id="logoutBtn" style="margin-top:20px;">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
