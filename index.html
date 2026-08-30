@@ -16,77 +16,44 @@
     <h1 id="siteName">Catálogo Cuba</h1>
   </div>
 
-  <!-- VISTA 1: LANDING PAGE DE ATERRIZAJE -->
+  <!-- VISTA 1: LANDING PAGE DE ATERRIZAJE (SIN CUENTAS) -->
   <div id="view-landing" class="view-screen">
     <section class="hero glass">
       <h2>Compra afuera, llega a Cuba</h2>
-      <p>La plataforma fácil y segura para comprar productos para tu familia en Cuba. Paga cómodamente con tu tarjeta desde cualquier parte del mundo. El envío es totalmente gratis y garantizado hasta en 7 días.</p>
+      <p>Sin registros ni cuentas complicadas. Compra los productos para tu familia en Cuba y paga con tu tarjeta desde cualquier país. Al realizar tu pedido recibes un <strong>Ticket de Seguimiento (ID y Clave Master)</strong> para rastrear tu envío en cualquier momento.</p>
+
       <div class="hero-steps">
         <div class="hero-step"><span class="n">1</span><br>Elige el producto</div>
         <div class="hero-step"><span class="n">2</span><br>Paga con Nexapay</div>
-        <div class="hero-step"><span class="n">3</span><br>Recibe en Cuba</div>
+        <div class="hero-step"><span class="n">3</span><br>Guarda tu Ticket</div>
       </div>
       <div class="badge-row">
-        <span class="badge">Envío gratis</span>
-        <span class="badge">Hasta 7 días</span>
-        <span class="badge">Pago con tarjeta vía Nexapay</span>
+        <span class="badge">Sin Registro de Cuenta</span>
+        <span class="badge">Ticket con Clave Master</span>
+        <span class="badge">Envío Gratis</span>
       </div>
 
       <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
-        <button class="btn btn-primary" id="goAuthBtn">Continuar / Registrarse</button>
-        <button class="btn btn-secondary" id="guestCatalogBtn">Entrar sin cuenta al Catálogo</button>
+        <button class="btn btn-primary" id="goCatalogBtn">🛒 Ver Catálogo</button>
+        <button class="btn btn-secondary" id="goCheckTicketBtn">🎟️ Consultar mi Ticket / Envío</button>
       </div>
     </section>
   </div>
 
-  <!-- VISTA 2: OPCIÓN DE ACCESO / REGISTRO / ENTRAR SIN CUENTA -->
-  <div id="view-auth" class="view-screen" style="display:none;">
-    <section class="glass hero" style="text-align: left;">
-      <h3>Acceso a la plataforma</h3>
-      <p class="meta">Inicia sesión o regístrate para guardar tu historial de compras, o continúa directamente como invitado.</p>
-
-      <div class="auth-tabs" style="display:flex; gap:10px; margin-bottom:15px;">
-        <button class="btn btn-secondary active" id="tabLoginBtn" style="flex:1;">Iniciar Sesión</button>
-        <button class="btn btn-secondary" id="tabRegisterBtn" style="flex:1;">Crear Cuenta</button>
-      </div>
-
-      <!-- Formulario Login -->
-      <div id="userLoginForm">
-        <label>Correo Electrónico</label>
-        <input id="userEmail" type="email" placeholder="tu@correo.com">
-        <label>Contraseña</label>
-        <input id="userPass" type="password">
-        <button class="btn btn-primary" id="doUserLoginBtn" style="margin-top:10px;">Entrar</button>
-      </div>
-
-      <!-- Formulario Registro -->
-      <div id="userRegisterForm" style="display:none;">
-        <label>Correo Electrónico</label>
-        <input id="regUserEmail" type="email" placeholder="tu@correo.com">
-        <label>Contraseña</label>
-        <input id="regUserPass" type="password" placeholder="Mínimo 6 caracteres">
-        <button class="btn btn-primary" id="doUserRegBtn" style="margin-top:10px;">Crear Cuenta</button>
-      </div>
-
-      <p class="meta" id="userAuthMsg" style="margin-top:10px; color:#ff3b30;"></p>
-
-      <div style="border-top:1px solid rgba(255,255,255,0.15); margin-top:20px; padding-top:15px; text-align:center;">
-        <button class="btn btn-secondary" id="skipAuthBtn" style="width:100%;">Entrar sin cuenta al Catálogo</button>
-      </div>
-    </section>
-  </div>
-
-  <!-- VISTA 3: CATÁLOGO DE PRODUCTOS CON BÚSQUEDA Y CATEGORÍAS -->
+  <!-- VISTA 2: CATÁLOGO DE PRODUCTOS CON BÚSQUEDA Y CATEGORÍAS -->
   <div id="view-catalog" class="view-screen" style="display:none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
       <h3 class="section-title" style="margin:0;">Catálogo</h3>
-      <button class="btn btn-secondary" id="backToHomeBtn" style="padding:6px 12px; font-size:12px;">← Inicio</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary" id="checkTicketSmallBtn" style="padding:6px 10px; font-size:12px;">🎟️ Ticket</button>
+        <button class="btn btn-secondary" id="backToHomeBtn" style="padding:6px 10px; font-size:12px;">← Inicio</button>
+      </div>
     </div>
 
     <!-- Buscador y Desplegable de Categorías -->
     <div class="search-category-bar glass" style="padding:12px; border-radius:16px; margin-bottom:16px;">
       <div style="display:flex; gap:8px;">
-        <input id="searchInput" placeholder="🔍 Buscar productos (motos, comida...)" style="margin:0; flex:1;">
+        <input id="searchInput" placeholder="🔍 Buscar (motos, comida, TV...)" style="margin:0; flex:1;">
         <button class="btn btn-secondary" id="toggleCategoryBtn" style="white-space:nowrap; padding:0 12px;">📁 Categorías ▼</button>
       </div>
 
@@ -104,6 +71,34 @@
 
 </div>
 
+<!-- ============ MODAL: CONSULTAR TICKET DE PEDIDO ============ -->
+<div class="overlay" id="ticketLookupOverlay">
+  <div class="sheet">
+    <span class="close-x" data-close="ticketLookupOverlay">✕</span>
+    <div class="sheet-handle"></div>
+    <h3>Consultar Estado de Envío</h3>
+    <p class="meta">Ingresa los datos de tu ticket impreso o guardado al realizar tu compra.</p>
+
+    <label>ID de Pedido (Ticket ID)</label>
+    <input id="lookupOrderId" placeholder="Ej: 8f4a9b21 o UUID de tu orden">
+
+    <label>Clave Master (Secret Key)</label>
+    <input id="lookupAccessKey" placeholder="Ej: a7b8c9d0">
+
+    <button class="btn btn-primary" id="doLookupBtn" style="margin-top:12px;">Consultar Estado</button>
+
+    <div id="ticketResultContainer" style="display:none; margin-top:18px; padding:14px; background:rgba(255,255,255,0.7); border-radius:16px; border:1px solid rgba(0,0,0,0.1);">
+      <h4 style="margin:0 0 8px;" id="resProductName"></h4>
+      <p style="font-size:14px; margin:4px 0;"><strong>Monto:</strong> $<span id="resAmount"></span> USD</p>
+      <p style="font-size:14px; margin:4px 0;"><strong>Destino en Cuba:</strong> <span id="resDestination"></span></p>
+      <p style="font-size:14px; margin:4px 0;"><strong>Estado del Pago / Envío:</strong> <span class="pill" id="resStatus"></span></p>
+      <p style="font-size:12px; color:var(--text-dim); margin-top:8px;" id="resDate"></p>
+    </div>
+
+    <p class="meta" id="lookupMsg" style="margin-top:10px; color:#ff3b30;"></p>
+  </div>
+</div>
+
 <!-- ============ FICHA DE PRODUCTO / COMPRA ============ -->
 <div class="overlay" id="productOverlay">
   <div class="sheet">
@@ -113,17 +108,36 @@
     <p class="price-big" id="productPrice"></p>
     <p class="desc" id="productDesc"></p>
 
-    <label>Tu nombre</label>
-    <input id="buyerName" placeholder="Nombre y apellidos">
+    <div id="checkoutFormStep">
+      <label>Tu nombre</label>
+      <input id="buyerName" placeholder="Nombre y apellidos">
 
-    <label>Tu contacto (WhatsApp / correo)</label>
-    <input id="buyerContact" placeholder="Para avisarte del pedido">
+      <label>Tu contacto (WhatsApp / correo)</label>
+      <input id="buyerContact" placeholder="Para avisarte del pedido">
 
-    <label>Destino en Cuba</label>
-    <textarea id="buyerDestination" rows="2" placeholder="Nombre de quien recibe, dirección y municipio"></textarea>
+      <label>Destino en Cuba</label>
+      <textarea id="buyerDestination" rows="2" placeholder="Nombre de quien recibe, dirección y municipio"></textarea>
 
-    <button class="btn btn-primary" id="payBtn">Pagar con tarjeta (Nexapay)</button>
-    <p class="meta" id="orderResult" style="color:#ff3b30; font-size:13px; margin-top:8px;"></p>
+      <button class="btn btn-primary" id="payBtn">Pagar con tarjeta (Nexapay)</button>
+      <p class="meta" id="orderResult" style="color:#ff3b30; font-size:13px; margin-top:8px;"></p>
+    </div>
+
+    <!-- PANTALLA TICKET GENERADO -->
+    <div id="ticketGeneratedStep" style="display:none; text-align:center;">
+      <div style="font-size:36px; margin-bottom:8px;">🎟️</div>
+      <h3>¡Pedido Creado! Guardar Ticket</h3>
+      <p class="meta">Haz una captura de pantalla o copia estos dos códigos. Con ellos podrás consultar el estado de tu pedido sin necesidad de cuenta.</p>
+
+      <div style="background:rgba(0,0,0,0.05); padding:12px; border-radius:14px; text-align:left; margin:14px 0;">
+        <p style="margin:4px 0; font-size:13px;"><strong>1. ID de Pedido:</strong></p>
+        <code style="font-size:14px; color:var(--blue);" id="ticketDisplayId"></code>
+
+        <p style="margin:10px 0 4px; font-size:13px;"><strong>2. Clave Master (Secret Key):</strong></p>
+        <code style="font-size:14px; color:#ff9500;" id="ticketDisplayKey"></code>
+      </div>
+
+      <button class="btn btn-primary" id="proceedToNexapayBtn">Ir a Pagar en Nexapay →</button>
+    </div>
   </div>
 </div>
 

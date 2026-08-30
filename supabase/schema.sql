@@ -1,6 +1,7 @@
 -- ============================================================
 -- Esquema para "Catálogo Cuba" — compra/venta con envío a Cuba
 -- Integrado con Nexapay para cobro con tarjeta y saldo en cripto
+-- Sistema de seguimiento mediante Tickets (Sin cuentas de usuario)
 -- Ejecutar esto en: Supabase Dashboard > SQL Editor > New query
 -- ============================================================
 
@@ -11,14 +12,13 @@ create table if not exists public.products (
   description text default '',
   price numeric(10,2) not null check (price >= 0),
   currency text not null default 'USD',
-  category text not null default 'General', -- Categoría: Motos, Equipos eléctricos, Electrodomésticos, Alimentos, etc.
+  category text not null default 'General',
   image_url text default '',
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
--- Si la tabla ya existía sin la columna category, la agregamos
 alter table public.products add column if not exists category text not null default 'General';
 
 -- 2) REFERIDOS --------------------------------------------------
@@ -32,7 +32,7 @@ create table if not exists public.referrers (
   created_at timestamptz not null default now()
 );
 
--- 3) PEDIDOS ------------------------------------------------------
+-- 3) PEDIDOS CON TICKET / CLAVE DE ACCESO ------------------------
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
   product_id uuid references public.products(id),
@@ -43,9 +43,12 @@ create table if not exists public.orders (
   shipping_destination text not null,       -- dirección / municipio en Cuba
   referral_code text references public.referrers(code),
   nexapay_invoice_id text,                  -- ID de factura / transacción de Nexapay
+  access_key text not null default substring(md5(random()::text) from 1 for 8), -- Clave de acceso única del Ticket
   status text not null default 'pending',   -- pending | paid | shipped | cancelled
   created_at timestamptz not null default now()
 );
+
+alter table public.orders add column if not exists access_key text not null default substring(md5(random()::text) from 1 for 8);
 
 -- 4) TABLA DE CONFIGURACIÓN Y ADMIN ------------------------------
 create table if not exists public.app_config (
@@ -104,7 +107,7 @@ create policy "admin borra referidos" on public.referrers
 create policy "cualquiera crea pedidos" on public.orders
   for insert with check (true);
 
-create policy "permitir select al crear pedidos" on public.orders
+create policy "permitir select de pedidos" on public.orders
   for select using (true);
 
 create policy "admin edita pedidos" on public.orders

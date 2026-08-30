@@ -254,7 +254,7 @@ async function addProduct() {
   setTimeout(() => (msg.textContent = ""), 2000);
 }
 
-// -------- Pedidos --------
+// -------- Pedidos con Ticket ID y Clave Master --------
 async function loadAdminOrders() {
   const list = document.getElementById("adminOrderList");
   list.innerHTML = "Cargando…";
@@ -271,11 +271,12 @@ async function loadAdminOrders() {
   data.forEach((o) => {
     const row = document.createElement("div");
     row.className = "admin-list-item";
+    const keyInfo = o.access_key ? ` · Master Key: ${escapeHtml(o.access_key)}` : '';
     const invoiceIdText = o.nexapay_invoice_id || o.qvapay_invoice_id ? ` · Nexapay ID: ${escapeHtml(o.nexapay_invoice_id || o.qvapay_invoice_id)}` : '';
     row.innerHTML = `
       <div>
         <div><strong>${escapeHtml(o.product_name)}</strong> — $${Number(o.amount).toFixed(2)}</div>
-        <div class="meta">${escapeHtml(o.buyer_name)} (${escapeHtml(o.buyer_contact)}) · Destino: ${escapeHtml(o.shipping_destination)}${o.referral_code ? " · ref: " + escapeHtml(o.referral_code) : ""}${invoiceIdText}</div>
+        <div class="meta">${escapeHtml(o.buyer_name)} (${escapeHtml(o.buyer_contact)}) · Destino: ${escapeHtml(o.shipping_destination)}${o.referral_code ? " · ref: " + escapeHtml(o.referral_code) : ""}${keyInfo}${invoiceIdText}</div>
       </div>
       <span class="pill ${o.status === "paid" ? "paid" : "pending"}">${o.status}</span>`;
     list.appendChild(row);

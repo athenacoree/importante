@@ -1,10 +1,11 @@
 // ============================================================
-// CATÁLOGO PÚBLICO Y NAVEGACIÓN
+// CATÁLOGO PÚBLICO, NAVEGACIÓN Y TICKET DE SEGUIMIENTO
 // ============================================================
 
 let currentProduct = null;
 let allProducts = [];
 let selectedCategory = "Todas";
+let pendingPaymentUrl = "";
 
 const DEFAULT_CATEGORIES = [
   "Todas",
@@ -21,6 +22,16 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+// -------- Generador de clave master aleatoria --------
+function generateSecretKey() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let result = "";
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 // -------- Navegación entre vistas --------
@@ -67,7 +78,6 @@ function renderCategories() {
   const container = document.getElementById("categoryPillsContainer");
   if (!container) return;
 
-  // Combinar categorías por defecto con cualquier categoría nueva creada en productos
   const customCategories = allProducts.map((p) => p.category || "General");
   const categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...customCategories]));
 
@@ -94,12 +104,10 @@ function renderFilteredProducts() {
 
   let filtered = allProducts;
 
-  // Filtrar por categoría
   if (selectedCategory !== "Todas") {
     filtered = filtered.filter((p) => (p.category || "General") === selectedCategory);
   }
 
-  // Filtrar por buscador
   if (searchTerm) {
     filtered = filtered.filter(
       (p) =>
@@ -148,9 +156,14 @@ function openProductSheet(product) {
   document.getElementById("buyerContact").value = "";
   document.getElementById("buyerDestination").value = "";
   document.getElementById("orderResult").textContent = "";
+
+  document.getElementById("checkoutFormStep").style.display = "block";
+  document.getElementById("ticketGeneratedStep").style.display = "none";
+
   toggleOverlay("productOverlay", true);
 }
 
+// -------- Creación de pedido y generación de Ticket (ID + Master Key) --------
 async function submitOrder() {
   const name = document.getElementById("buyerName").value.trim();
   const contact = document.getElementById("buyerContact").value.trim();
@@ -164,9 +177,10 @@ async function submitOrder() {
   }
 
   btn.disabled = true;
-  btn.textContent = "Generando pago en Nexapay…";
+  btn.textContent = "Creando Ticket y pago…";
 
   const referralCode = localStorage.getItem("referral_code") || null;
+  const accessKey = generateSecretKey();
 
   try {
     const { data: order, error: orderError } = await supabaseClient
@@ -179,6 +193,7 @@ async function submitOrder() {
         buyer_contact: contact,
         shipping_destination: destination,
         referral_code: referralCode,
+        access_key: accessKey,
         status: "pending",
       })
       .select()
@@ -204,14 +219,73 @@ async function submitOrder() {
         .eq("id", order.id);
     }
 
-    window.location.href = data.url;
+    pendingPaymentUrl = data.url;
+
+    // Mostrar Ticket generado
+    document.getElementById("ticketDisplayId").textContent = order.id;
+    document.getElementById("ticketDisplayKey").textContent = accessKey;
+
+    document.getElementById("checkoutFormStep").style.display = "none";
+    document.getElementById("ticketGeneratedStep").style.display = "block";
+
   } catch (err) {
     console.error(err);
     resultEl.textContent =
-      "No se pudo generar el pago. Revisa que la función create-invoice de Supabase esté configurada con tus llaves de Nexapay.";
+      "No se pudo procesar la solicitud. Verifica que Supabase y Nexapay estén configurados.";
+  } finally {
     btn.disabled = false;
     btn.textContent = "Pagar con tarjeta (Nexapay)";
   }
+}
+
+// -------- Consultar Ticket de Pedido --------
+async function lookupOrderTicket() {
+  const orderIdInput = document.getElementById("lookupOrderId").value.trim();
+  const accessKeyInput = document.getElementById("lookupAccessKey").value.trim();
+  const msg = document.getElementById("lookupMsg");
+  const resContainer = document.getElementById("ticketResultContainer");
+
+  msg.textContent = "";
+  resContainer.style.display = "none";
+
+  if (!orderIdInput || !accessKeyInput) {
+    msg.textContent = "Ingresa tanto el ID de Pedido como tu Clave Master.";
+    return;
+  }
+
+  msg.textContent = "Buscando pedido…";
+
+  // Buscar por ID completo o fragmento inicial y clave de acceso
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("access_key", accessKeyInput);
+
+  if (error) {
+    msg.textContent = "Error al consultar la base de datos.";
+    return;
+  }
+
+  const match = (data || []).find(
+    (o) => o.id === orderIdInput || o.id.startsWith(orderIdInput)
+  );
+
+  if (!match) {
+    msg.textContent = "No se encontró ningún pedido con esa combinación de ID y Clave Master.";
+    return;
+  }
+
+  msg.textContent = "";
+  document.getElementById("resProductName").textContent = match.product_name;
+  document.getElementById("resAmount").textContent = Number(match.amount).toFixed(2);
+  document.getElementById("resDestination").textContent = match.shipping_destination;
+
+  const statusEl = document.getElementById("resStatus");
+  statusEl.textContent = match.status.toUpperCase();
+  statusEl.className = `pill ${match.status === "paid" ? "paid" : "pending"}`;
+
+  document.getElementById("resDate").textContent = `Fecha: ${new Date(match.created_at).toLocaleString('es-ES')}`;
+  resContainer.style.display = "block";
 }
 
 function toggleOverlay(id, open) {
@@ -220,83 +294,27 @@ function toggleOverlay(id, open) {
   else el.classList.remove("open");
 }
 
-// -------- Manejo de Autenticación de Usuario Regular --------
-function setupAuthEvents() {
-  const tabLoginBtn = document.getElementById("tabLoginBtn");
-  const tabRegisterBtn = document.getElementById("tabRegisterBtn");
-  const loginForm = document.getElementById("userLoginForm");
-  const regForm = document.getElementById("userRegisterForm");
-
-  if (tabLoginBtn && tabRegisterBtn) {
-    tabLoginBtn.addEventListener("click", () => {
-      tabLoginBtn.classList.add("active");
-      tabRegisterBtn.classList.remove("active");
-      loginForm.style.display = "block";
-      regForm.style.display = "none";
-    });
-
-    tabRegisterBtn.addEventListener("click", () => {
-      tabRegisterBtn.classList.add("active");
-      tabLoginBtn.classList.remove("active");
-      regForm.style.display = "block";
-      loginForm.style.display = "none";
-    });
-  }
-
-  document.getElementById("doUserLoginBtn")?.addEventListener("click", async () => {
-    const email = document.getElementById("userEmail").value.trim();
-    const pass = document.getElementById("userPass").value;
-    const msg = document.getElementById("userAuthMsg");
-
-    if (!email || !pass) {
-      msg.textContent = "Ingresa tu correo y contraseña.";
-      return;
-    }
-
-    msg.textContent = "Verificando…";
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
-    if (error) {
-      msg.textContent = "Error: " + error.message;
-      return;
-    }
-    showToast("¡Sesión iniciada!");
-    showView("view-catalog");
-  });
-
-  document.getElementById("doUserRegBtn")?.addEventListener("click", async () => {
-    const email = document.getElementById("regUserEmail").value.trim();
-    const pass = document.getElementById("regUserPass").value;
-    const msg = document.getElementById("userAuthMsg");
-
-    if (!email || pass.length < 6) {
-      msg.textContent = "Pon un correo y una contraseña de al menos 6 caracteres.";
-      return;
-    }
-
-    msg.textContent = "Creando cuenta…";
-    const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
-    if (error) {
-      msg.textContent = "Error: " + error.message;
-      return;
-    }
-    showToast("Cuenta creada con éxito.");
-    showView("view-catalog");
-  });
-}
-
 // -------- Init --------
 document.addEventListener("DOMContentLoaded", () => {
   captureReferral();
   loadProducts();
-  setupAuthEvents();
 
-  // Botones de navegación
-  document.getElementById("goAuthBtn")?.addEventListener("click", () => showView("view-auth"));
-  document.getElementById("guestCatalogBtn")?.addEventListener("click", () => showView("view-catalog"));
-  document.getElementById("skipAuthBtn")?.addEventListener("click", () => showView("view-catalog"));
+  // Navegación
+  document.getElementById("goCatalogBtn")?.addEventListener("click", () => showView("view-catalog"));
   document.getElementById("backToHomeBtn")?.addEventListener("click", () => showView("view-landing"));
 
-  // Toggle panel expandible de categorías
+  // Modales Ticket
+  document.getElementById("goCheckTicketBtn")?.addEventListener("click", () => toggleOverlay("ticketLookupOverlay", true));
+  document.getElementById("checkTicketSmallBtn")?.addEventListener("click", () => toggleOverlay("ticketLookupOverlay", true));
+  document.getElementById("doLookupBtn")?.addEventListener("click", lookupOrderTicket);
+
+  document.getElementById("proceedToNexapayBtn")?.addEventListener("click", () => {
+    if (pendingPaymentUrl) {
+      window.location.href = pendingPaymentUrl;
+    }
+  });
+
+  // Toggle categorías
   document.getElementById("toggleCategoryBtn")?.addEventListener("click", () => {
     const panel = document.getElementById("categoryExpandablePanel");
     if (panel) {
@@ -306,10 +324,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Buscador en tiempo real
   document.getElementById("searchInput")?.addEventListener("input", renderFilteredProducts);
-
   document.getElementById("payBtn")?.addEventListener("click", submitOrder);
+
   document.querySelectorAll("[data-close]").forEach((btn) => {
     btn.addEventListener("click", () => toggleOverlay(btn.dataset.close, false));
   });
