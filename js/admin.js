@@ -115,7 +115,7 @@ function switchAdminTab(tab) {
   if (tab === "referrals") loadAdminReferrals();
 }
 
-// -------- Productos (CRUD completos: Crear, Leer, Editar, Alternar, Borrar) --------
+// -------- Productos (CRUD completos con Categorías) --------
 async function loadAdminProducts() {
   const list = document.getElementById("adminProductList");
   list.innerHTML = "Cargando…";
@@ -135,7 +135,7 @@ async function loadAdminProducts() {
     row.innerHTML = `
       <div>
         <div><strong>${escapeHtml(p.name)}</strong> — $${Number(p.price).toFixed(2)} ${escapeHtml(p.currency || 'USD')}</div>
-        <div class="meta">${p.active ? "✅ Publicado" : "🙈 Oculto"} ${p.description ? '· ' + escapeHtml(p.description.slice(0, 35)) + '...' : ''}</div>
+        <div class="meta">Categoría: ${escapeHtml(p.category || 'General')} · ${p.active ? "✅ Publicado" : "🙈 Oculto"}</div>
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
         <span style="cursor:pointer;" title="Editar producto" data-action="edit" data-id="${p.id}">✏️</span>
@@ -174,6 +174,7 @@ function openEditProductModal(p) {
   editingProductId = p.id;
   document.getElementById("editProdName").value = p.name || "";
   document.getElementById("editProdPrice").value = p.price;
+  document.getElementById("editProdCategory").value = p.category || "General";
   document.getElementById("editProdDesc").value = p.description || "";
   document.getElementById("editProdImg").value = p.image_url || "";
   document.getElementById("editProdMsg").textContent = "";
@@ -183,6 +184,7 @@ function openEditProductModal(p) {
 async function saveEditedProduct() {
   const name = document.getElementById("editProdName").value.trim();
   const price = parseFloat(document.getElementById("editProdPrice").value);
+  const category = document.getElementById("editProdCategory").value;
   const desc = document.getElementById("editProdDesc").value.trim();
   const img = document.getElementById("editProdImg").value.trim();
   const msg = document.getElementById("editProdMsg");
@@ -197,6 +199,7 @@ async function saveEditedProduct() {
   const { error } = await supabaseClient.from("products").update({
     name,
     price,
+    category,
     description: desc,
     image_url: img,
     updated_at: new Date().toISOString()
@@ -218,6 +221,7 @@ async function saveEditedProduct() {
 async function addProduct() {
   const name = document.getElementById("newProdName").value.trim();
   const price = parseFloat(document.getElementById("newProdPrice").value);
+  const category = document.getElementById("newProdCategory").value;
   const desc = document.getElementById("newProdDesc").value.trim();
   const img = document.getElementById("newProdImg").value.trim();
   const msg = document.getElementById("newProdMsg");
@@ -230,6 +234,7 @@ async function addProduct() {
   const { error } = await supabaseClient.from("products").insert({
     name,
     price,
+    category,
     description: desc,
     image_url: img,
     active: true,

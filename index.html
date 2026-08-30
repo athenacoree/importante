@@ -16,25 +16,91 @@
     <h1 id="siteName">Catálogo Cuba</h1>
   </div>
 
-  <!-- Bienvenida: qué es la plataforma -->
-  <section class="hero glass">
-    <h2>Compra afuera, llega a Cuba</h2>
-    <p>Elige un producto del catálogo, paga con tu tarjeta desde cualquier país y nosotros lo hacemos llegar a tu familia en Cuba en un plazo de hasta 7 días. El envío es totalmente gratis.</p>
-    <div class="hero-steps">
-      <div class="hero-step"><span class="n">1</span><br>Elige el producto del catálogo</div>
-      <div class="hero-step"><span class="n">2</span><br>Paga seguro con Nexapay</div>
-      <div class="hero-step"><span class="n">3</span><br>Lo recibe tu familia en Cuba</div>
-    </div>
-    <div class="badge-row">
-      <span class="badge">Envío gratis</span>
-      <span class="badge">Hasta 7 días</span>
-      <span class="badge">Pago con tarjeta vía Nexapay</span>
-    </div>
-  </section>
+  <!-- VISTA 1: LANDING PAGE DE ATERRIZAJE -->
+  <div id="view-landing" class="view-screen">
+    <section class="hero glass">
+      <h2>Compra afuera, llega a Cuba</h2>
+      <p>La plataforma fácil y segura para comprar productos para tu familia en Cuba. Paga cómodamente con tu tarjeta desde cualquier parte del mundo. El envío es totalmente gratis y garantizado hasta en 7 días.</p>
+      <div class="hero-steps">
+        <div class="hero-step"><span class="n">1</span><br>Elige el producto</div>
+        <div class="hero-step"><span class="n">2</span><br>Paga con Nexapay</div>
+        <div class="hero-step"><span class="n">3</span><br>Recibe en Cuba</div>
+      </div>
+      <div class="badge-row">
+        <span class="badge">Envío gratis</span>
+        <span class="badge">Hasta 7 días</span>
+        <span class="badge">Pago con tarjeta vía Nexapay</span>
+      </div>
 
-  <!-- Catálogo -->
-  <h3 class="section-title">Catálogo</h3>
-  <div class="grid" id="productGrid"></div>
+      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
+        <button class="btn btn-primary" id="goAuthBtn">Continuar / Registrarse</button>
+        <button class="btn btn-secondary" id="guestCatalogBtn">Entrar sin cuenta al Catálogo</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- VISTA 2: OPCIÓN DE ACCESO / REGISTRO / ENTRAR SIN CUENTA -->
+  <div id="view-auth" class="view-screen" style="display:none;">
+    <section class="glass hero" style="text-align: left;">
+      <h3>Acceso a la plataforma</h3>
+      <p class="meta">Inicia sesión o regístrate para guardar tu historial de compras, o continúa directamente como invitado.</p>
+
+      <div class="auth-tabs" style="display:flex; gap:10px; margin-bottom:15px;">
+        <button class="btn btn-secondary active" id="tabLoginBtn" style="flex:1;">Iniciar Sesión</button>
+        <button class="btn btn-secondary" id="tabRegisterBtn" style="flex:1;">Crear Cuenta</button>
+      </div>
+
+      <!-- Formulario Login -->
+      <div id="userLoginForm">
+        <label>Correo Electrónico</label>
+        <input id="userEmail" type="email" placeholder="tu@correo.com">
+        <label>Contraseña</label>
+        <input id="userPass" type="password">
+        <button class="btn btn-primary" id="doUserLoginBtn" style="margin-top:10px;">Entrar</button>
+      </div>
+
+      <!-- Formulario Registro -->
+      <div id="userRegisterForm" style="display:none;">
+        <label>Correo Electrónico</label>
+        <input id="regUserEmail" type="email" placeholder="tu@correo.com">
+        <label>Contraseña</label>
+        <input id="regUserPass" type="password" placeholder="Mínimo 6 caracteres">
+        <button class="btn btn-primary" id="doUserRegBtn" style="margin-top:10px;">Crear Cuenta</button>
+      </div>
+
+      <p class="meta" id="userAuthMsg" style="margin-top:10px; color:#ff3b30;"></p>
+
+      <div style="border-top:1px solid rgba(255,255,255,0.15); margin-top:20px; padding-top:15px; text-align:center;">
+        <button class="btn btn-secondary" id="skipAuthBtn" style="width:100%;">Entrar sin cuenta al Catálogo</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- VISTA 3: CATÁLOGO DE PRODUCTOS CON BÚSQUEDA Y CATEGORÍAS -->
+  <div id="view-catalog" class="view-screen" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h3 class="section-title" style="margin:0;">Catálogo</h3>
+      <button class="btn btn-secondary" id="backToHomeBtn" style="padding:6px 12px; font-size:12px;">← Inicio</button>
+    </div>
+
+    <!-- Buscador y Desplegable de Categorías -->
+    <div class="search-category-bar glass" style="padding:12px; border-radius:16px; margin-bottom:16px;">
+      <div style="display:flex; gap:8px;">
+        <input id="searchInput" placeholder="🔍 Buscar productos (motos, comida...)" style="margin:0; flex:1;">
+        <button class="btn btn-secondary" id="toggleCategoryBtn" style="white-space:nowrap; padding:0 12px;">📁 Categorías ▼</button>
+      </div>
+
+      <!-- Panel Expandible de Categorías -->
+      <div id="categoryExpandablePanel" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.15);">
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Elige una categoría:</div>
+        <div class="category-pills" id="categoryPillsContainer" style="display:flex; flex-wrap:wrap; gap:8px;">
+          <!-- Se llenan dinámicamente -->
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" id="productGrid"></div>
+  </div>
 
 </div>
 
@@ -61,7 +127,7 @@
   </div>
 </div>
 
-<!-- ============ EDITAR PRODUCTO (MODAL MODAL) ============ -->
+<!-- ============ EDITAR PRODUCTO (PANEL ADMIN) ============ -->
 <div class="overlay" id="editProductOverlay">
   <div class="sheet">
     <span class="close-x" data-close="editProductOverlay">✕</span>
@@ -71,6 +137,15 @@
     <input id="editProdName">
     <label>Precio (USD)</label>
     <input id="editProdPrice" type="number" step="0.01">
+    <label>Categoría</label>
+    <select id="editProdCategory">
+      <option value="General">General</option>
+      <option value="Motos y Vehículos">Motos y Vehículos</option>
+      <option value="Equipos Eléctricos">Equipos Eléctricos</option>
+      <option value="Electrodomésticos">Electrodomésticos</option>
+      <option value="Alimentos">Alimentos</option>
+      <option value="Ferretería y Más">Ferretería y Más</option>
+    </select>
     <label>Descripción</label>
     <textarea id="editProdDesc" rows="3"></textarea>
     <label>URL de la foto</label>
@@ -132,6 +207,15 @@
         <input id="newProdName">
         <label>Precio (USD)</label>
         <input id="newProdPrice" type="number" step="0.01">
+        <label>Categoría</label>
+        <select id="newProdCategory">
+          <option value="General">General</option>
+          <option value="Motos y Vehículos">Motos y Vehículos</option>
+          <option value="Equipos Eléctricos">Equipos Eléctricos</option>
+          <option value="Electrodomésticos">Electrodomésticos</option>
+          <option value="Alimentos">Alimentos</option>
+          <option value="Ferretería y Más">Ferretería y Más</option>
+        </select>
         <label>Descripción</label>
         <textarea id="newProdDesc" rows="2"></textarea>
         <label>URL de la foto</label>

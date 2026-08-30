@@ -11,11 +11,15 @@ create table if not exists public.products (
   description text default '',
   price numeric(10,2) not null check (price >= 0),
   currency text not null default 'USD',
+  category text not null default 'General', -- Categoría: Motos, Equipos eléctricos, Electrodomésticos, Alimentos, etc.
   image_url text default '',
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Si la tabla ya existía sin la columna category, la agregamos
+alter table public.products add column if not exists category text not null default 'General';
 
 -- 2) REFERIDOS --------------------------------------------------
 create table if not exists public.referrers (
@@ -49,7 +53,6 @@ create table if not exists public.app_config (
   value text not null
 );
 
--- Inserta por defecto flag de admin desconfigurado si no existe
 insert into public.app_config (key, value)
 values ('admin_email', '')
 on conflict (key) do nothing;
@@ -101,14 +104,13 @@ create policy "admin borra referidos" on public.referrers
 create policy "cualquiera crea pedidos" on public.orders
   for insert with check (true);
 
--- Permitir leer pedidos creados públicamente
 create policy "permitir select al crear pedidos" on public.orders
   for select using (true);
 
 create policy "admin edita pedidos" on public.orders
   for update using (true);
 
--- Configulación
+-- Configuración
 create policy "config visible a todos" on public.app_config
   for select using (true);
 
